@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/ProductListFragment">
+
+    <fragment
+        android:id="@+id/ProductListFragment"
+        android:name="com.thales.productmanager.ui.productlist.ProductListFragment"
+        android:label="@string/label_product_list"
+        tools:layout="@layout/fragment_product_list">
+
+        <action
+            android:id="@+id/action_ProductList_to_ProductCreation"
+            app:destination="@id/ProductCreationFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/ProductCreationFragment"
+        android:name="com.thales.productmanager.ui.createproduct.ProductCreationFragment"
+        android:label="@string/label_product_manipulation"
+        tools:layout="@layout/fragment_product_creation">
+
+        <action
+            android:id="@+id/action_ProductCreation_to_ProductList"
+            app:destination="@id/ProductListFragment" />
+    </fragment>
+</navigation>
