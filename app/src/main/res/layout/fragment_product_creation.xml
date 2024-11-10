@@ -38,7 +38,24 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/field_top_margin"
         android:hint="@string/hint_product_price"
+        android:inputType="numberDecimal"
         app:layout_constraintTop_toBottomOf="@+id/description_edtxt" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/product_image_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/field_top_margin"
+        app:layout_constraintTop_toBottomOf="@+id/price_edtxt" />
+
+    <Button
+        android:id="@+id/add_image_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/field_top_margin"
+        android:text="@string/btn_add_image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/product_image_list" />
 
     <Button
         android:id="@+id/create_btn"

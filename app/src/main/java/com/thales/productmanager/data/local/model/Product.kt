@@ -11,6 +11,6 @@ data class Product(
     val name: String?,
     val type: String?,
     val description: String?,
-    @ColumnInfo(name = "image_id") val imageId: String?,
+    @ColumnInfo(name = "image_file_names") val imageFileNames: String?,
     val price: Double?
 )

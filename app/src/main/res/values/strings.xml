@@ -52,4 +52,5 @@
     <string name="msg_product_creation_success">Product created successfully!</string>
     <string name="msg_general_failure">Something went wrong. Please try later.</string>
     <string name="error_msg_product_input_invalid">Please check all the input fields and try again!</string>
+    <string name="btn_add_image">Add Image</string>
 </resources>

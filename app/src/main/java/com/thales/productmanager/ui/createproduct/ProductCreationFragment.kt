@@ -1,32 +1,55 @@
 package com.thales.productmanager.ui.createproduct
 
 import android.app.ProgressDialog
+import android.graphics.Rect
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.thales.productmanager.R
 import com.thales.productmanager.data.local.model.Product
 import com.thales.productmanager.databinding.FragmentProductCreationBinding
-import com.thales.productmanager.ui.core.UiState
+import com.thales.productmanager.ui.createproduct.adapter.ProductImageListAdapter
 import com.thales.productmanager.ui.createproduct.state.ProductCreationUiState
 import com.thales.productmanager.ui.createproduct.viewmodel.ProductCreationViewModel
+import com.thales.productmanager.util.DIR_PRODUCT_IMAGE
+import com.thales.productmanager.util.MAX_PRODUCT_IMAGES
 import com.thales.productmanager.util.showLongToast
 import com.thales.productmanager.util.trimmedText
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import java.io.File
 
 @AndroidEntryPoint
 class ProductCreationFragment : Fragment() {
+
+    companion object {
+        private const val TAG = "ProductCreationFragment"
+    }
 
     private lateinit var binding: FragmentProductCreationBinding
 
     private val viewModel: ProductCreationViewModel by viewModels()
 
     private var progressDialog: ProgressDialog? = null
+
+    private val productImageListAdapter: ProductImageListAdapter = ProductImageListAdapter(listOf(), object : ProductImageListAdapter.Callback {
+        override fun onRemoveImageBtnClick(position: Int) {
+            handleRemoveImageBtnClick(position)
+        }
+    })
+
+    private val productImagePicker = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(MAX_PRODUCT_IMAGES)) {
+        handleProductImagePickerResult(it)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentProductCreationBinding.inflate(inflater, container, false)
@@ -62,6 +85,18 @@ class ProductCreationFragment : Fragment() {
         }
     }
 
+    private fun handleProductImagePickerResult(imageUris: List<Uri>) {
+        if (imageUris.isEmpty()) {
+            return
+        }
+        Log.d(TAG, "selected imageUris = $imageUris")
+        productImageListAdapter.updateImageUris(imageUris)
+    }
+
+    private fun handleRemoveImageBtnClick(position: Int) {
+        productImageListAdapter.removeImage(position)
+    }
+
     private fun setViewModelObservers() {
         viewModel.productCreationUiState.observe(viewLifecycleOwner) { handleProductCreationUiState(it) }
     }
@@ -82,6 +117,7 @@ class ProductCreationFragment : Fragment() {
             typeEdtxt.setText("")
             descriptionEdtxt.setText("")
             priceEdtxt.setText("")
+            productImageListAdapter.updateImageUris(listOf())
         }
     }
 
@@ -89,7 +125,29 @@ class ProductCreationFragment : Fragment() {
         createBtn.setOnClickListener {
             handleCreateBtnClick()
         }
+        addImageBtn.setOnClickListener {
+            handleAddImageBtnClick()
+        }
+        productImageList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        productImageList.adapter = productImageListAdapter
+        productImageList.addItemDecoration(object : ItemDecoration() {
+            override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+                val spaceSize = resources.getDimensionPixelSize(R.dimen.product_image_spacing)
+                with(outRect) {
+                    if (parent.getChildAdapterPosition(view) == 0) {
+                        top = spaceSize
+                    }
+                    left = spaceSize
+                    right = spaceSize
+                    bottom = spaceSize
+                }
+            }
+        })
         return@with
+    }
+
+    private fun handleAddImageBtnClick() {
+        productImagePicker.launch(PickVisualMediaRequest.Builder().setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly).build())
     }
 
     private fun handleCreateBtnClick() {
@@ -102,10 +160,12 @@ class ProductCreationFragment : Fragment() {
             name = binding.nameEdtxt.trimmedText(),
             type = binding.typeEdtxt.trimmedText(),
             description = binding.descriptionEdtxt.trimmedText(),
-            imageId = null,
+            imageFileNames = null,
             price = binding.priceEdtxt.trimmedText().toDouble()
         )
-        viewModel.createProduct(product)
+        viewModel.createProduct(
+            product, productImageListAdapter.getImageUris(), requireContext().contentResolver, File(requireContext().filesDir, DIR_PRODUCT_IMAGE)
+        )
         showProgress()
     }
 
