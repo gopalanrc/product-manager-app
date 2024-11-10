@@ -5,12 +5,12 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,8 +18,8 @@ import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.thales.productmanager.R
 import com.thales.productmanager.data.local.model.Product
 import com.thales.productmanager.databinding.FragmentProductCreationBinding
+import com.thales.productmanager.ui.core.UiState
 import com.thales.productmanager.ui.createproduct.adapter.ProductImageListAdapter
-import com.thales.productmanager.ui.createproduct.state.ProductCreationUiState
 import com.thales.productmanager.ui.createproduct.viewmodel.ProductCreationViewModel
 import com.thales.productmanager.util.DIR_PRODUCT_IMAGE
 import com.thales.productmanager.util.MAX_PRODUCT_IMAGES
@@ -90,18 +90,18 @@ class ProductCreationFragment : Fragment() {
             return
         }
         Log.d(TAG, "selected imageUris = $imageUris")
-        productImageListAdapter.updateImageUris(imageUris)
+        productImageListAdapter.updateItems(imageUris)
     }
 
     private fun handleRemoveImageBtnClick(position: Int) {
-        productImageListAdapter.removeImage(position)
+        productImageListAdapter.removeItem(position)
     }
 
     private fun setViewModelObservers() {
         viewModel.productCreationUiState.observe(viewLifecycleOwner) { handleProductCreationUiState(it) }
     }
 
-    private fun handleProductCreationUiState(productCreationUiState: ProductCreationUiState) {
+    private fun handleProductCreationUiState(productCreationUiState: UiState<Boolean>) {
         dismissProgress()
         productCreationUiState.errorDetail?.let {
             requireContext().showLongToast(getString(R.string.msg_general_failure))
@@ -117,7 +117,7 @@ class ProductCreationFragment : Fragment() {
             typeEdtxt.setText("")
             descriptionEdtxt.setText("")
             priceEdtxt.setText("")
-            productImageListAdapter.updateImageUris(listOf())
+            productImageListAdapter.updateItems(listOf())
         }
     }
 
@@ -164,7 +164,7 @@ class ProductCreationFragment : Fragment() {
             price = binding.priceEdtxt.trimmedText().toDouble()
         )
         viewModel.createProduct(
-            product, productImageListAdapter.getImageUris(), requireContext().contentResolver, File(requireContext().filesDir, DIR_PRODUCT_IMAGE)
+            product, productImageListAdapter.getItems(), requireContext().contentResolver, File(requireContext().filesDir, DIR_PRODUCT_IMAGE)
         )
         showProgress()
     }
